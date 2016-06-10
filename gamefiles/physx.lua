@@ -13,9 +13,13 @@ e = 12
 b = 13
 d = 14
 o = 15
+l = 16
+r = 17
+k = 18
 
 world = love.physics.newWorld(0, 9.16*81, true)
 boxnum = 0
+checkpointnum = 1
 
 local img = love.graphics.newImage('gfx/particle.png');
 bgel = love.graphics.newParticleSystem(img, 32)
@@ -28,6 +32,7 @@ local function static(x, y, w, h, c, data, img)
 	body = love.physics.newBody(world, x, y, "static")
 	shape = love.physics.newRectangleShape(w, h)
 	fixture = love.physics.newFixture(body, shape)
+	fixture:setFriction(0.5)
 	if img then
 		img = love.graphics.newImage(img)
 	elseif not img then img = nil end
@@ -44,6 +49,19 @@ local function dynamic(x, y, w, h, c, data, img)
 		img = love.graphics.newImage(img)
 	elseif not img then img = nil end
 	fixture:setUserData(data)
+	table.insert(physx.tiles, {body = body, shape = shape, fixture = fixture, dead = dead, color = c, img = img})
+end
+
+local function checkpoint(x, y, w, h, c, data, img)
+	dead = false
+	body = love.physics.newBody(world, x, y, "static")
+	shape = love.physics.newRectangleShape(w, h)
+	fixture = love.physics.newFixture(body, shape)
+	if img then
+		img = love.graphics.newImage(img)
+	elseif not img then img = nil end
+	fixture:setUserData("checkpoint"..checkpointnum)
+	checkpointnum = checkpointnum + 1
 	table.insert(physx.tiles, {body = body, shape = shape, fixture = fixture, dead = dead, color = c, img = img})
 end
 
@@ -68,7 +86,7 @@ function physx.loadMap(map)
 			elseif map[y][x] == 3 then
 				static(x * 25, y * 25 + 23, 25, 19, {190, 40, 40}, "lava")
 			elseif map[y][x] == 4 then
-				dynamic(x * 25, y * 25 + 25, 25, 25, {160, 100, 40}, "box", "gfx/crate.png")
+				dynamic(x * 25, y * 25 + 20, 20, 20, {160, 100, 40}, "box", "gfx/crate.png")
 			elseif map[y][x] == 5 then
 				static(x * 25, y * 25 + 10, 25, 5, {0, 130, 255}, "gelBounce", "gfx/blue.png")
 				static(x * 25, y * 25 + 22, 25, 20, {100, 100, 100}, "walk1", "gfx/grey brick.png")
@@ -87,7 +105,7 @@ function physx.loadMap(map)
 			elseif map[y][x] == e then
 				static(x * 25, y * 25 + 20, 15, 25, {255, 255, 255}, "exit", "gfx/exit.png")
 			elseif map[y][x] == c then
-				static(x * 25, y * 25 + 20, 15, 25, {0, 170, 0}, "checkpoint", "gfx/checkpoint.png")
+				checkpoint(x * 25, y * 25 + 20, 15, 25, {170, 0, 0}, "checkpoint", "gfx/checkpoint.png")
 			elseif map[y][x] == b then
 				static(x * 25, y * 25 + 25, 20, 5, {190, 40, 40}, "button")
 				static(x * 25, y * 25 + 30, 25, 5, {150, 150, 150}, "button_base")
@@ -96,6 +114,16 @@ function physx.loadMap(map)
 				static(x * 25, y * 25 + 25, 15, 25, {150, 150, 150}, "button_base")
 			elseif map[y][x] == d then
 				static(x * 25, y * 25 + 20, 20, 25, {130, 130, 130}, "dispenser")
+			elseif map[y][x] == l then
+				static(x * 25 - 10, y * 25 + 20, 5, 25, {160, 32, 240}, "wallRun", "gfx/orange.png")
+				static(x * 25 + 2, y * 25 + 20, 20, 25, {100, 100, 100}, "walk1", "gfx/grey brick.png")
+			elseif map[y][x] == r then
+				static(x * 25 + 10, y * 25 + 20, 5, 25, {160, 32, 240}, "wallRun", "gfx/orange.png")
+				static(x * 25 - 3, y * 25 + 20, 20, 25, {100, 100, 100}, "walk1", "gfx/grey brick.png")
+			elseif map[y][x] == k then
+				static(x * 25 - 10, y * 25 + 20, 5, 25, {160, 32, 240}, "wallRun", "gfx/orange.png")
+				static(x * 25 + 10, y * 25 + 20, 5, 25, {160, 32, 240}, "wallRun", "gfx/orange.png")
+				static(x * 25, y * 25 + 20, 15, 25, {100, 100, 100}, "walk1", "gfx/grey brick.png")
 			end
 		end
 	end
@@ -174,60 +202,42 @@ function physx.Bcontact(a1, a2)
 		end
 	end
 	if d1 == "player" or d2 == "player" then
-		if d1 == "gelBounce" then
-			local x = love.graphics.newParticleSystem(img, 32)
-			x:setParticleLifetime(1, 3)
-			x:setLinearAcceleration(-15, -5, 20, -20)
-			x:setColors(120, 150, 255, 90)
-			x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
-			x1, y1 = x:getPosition()
-			table.insert(sys, {p=x, x=x1, y=y1})
-			x:emit(10)
-			player.jumping = false
-			player.jumpForce = 210
-		end
-		if d2 == "gelBounce" then
-			local x = love.graphics.newParticleSystem(img, 32)
-			x:setParticleLifetime(1, 3)
-			x:setLinearAcceleration(-15, -5, 20, -20)
-			x:setColors(120, 150, 255, 90)
-			x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
-			x1, y1 = x:getPosition()
-			table.insert(sys, {p=x, x=x1, y=y1})
-			x:emit(10)
-			player.jumping = false
-			player.jumpForce = 210
-		end
-		if d1 == "box" or d2 == "box" then
-			player.jumping = false
-		end
+		if d1 == "walk0" or d2 == "walk0" then
+			player.jumping = true
+		else player.jumping = false end
 		if d1 == "glass" or d2 == "glass" then
 			player.jumping = true
 		end
-		if d1 == "gelSpeed" then
+		if d1 == "gelBounce" or d2 == "gelBounce" then
+			local x = love.graphics.newParticleSystem(img, 32)
+			x:setParticleLifetime(3, 3)
+			x:setLinearAcceleration(-15, -5, 20, -20)
+			x:setColors(120, 150, 255, 90)
+			if d1 == "gelBounce" then
+				x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
+			elseif d2 == "gelBounce" then
+				x:setPosition(a2:getBody():getX(), a2:getBody():getY() + 15)
+			end
+			x1, y1 = x:getPosition()
+			table.insert(sys, {p=x, x=x1, y=y1})
+			x:emit(10)
+			player.jumpForce = 210
+		end
+		if d1 == "gelSpeed" or d2 == "gelSpeed" then
 			local x = love.graphics.newParticleSystem(img, 32)
 			x:setParticleLifetime(3, 3)
 			x:setLinearAcceleration(-15, -5, 20, -20)
 			x:setColors(255, 130, 0, 50)
-			x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
+			if d1 == "gelSpeed" then
+				x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
+			elseif d2 == "gelSpeed" then
+				x:setPosition(a2:getBody():getX(), a2:getBody():getY() + 15)
+			end
 			x1, y1 = x:getPosition()
 			table.insert(sys, {p=x, x=x1, y=y1})
 			x:emit(10)
-			player.jumping = false
 			player.moveSpeed = 510
 			player.maxVelocity = 320
-		end
-		if d2 == "gelSpeed" then
-			local x = love.graphics.newParticleSystem(img, 32)
-			x:setParticleLifetime(1, 3)
-			x:setLinearAcceleration(-15, -5, 20, -20)
-			x:setColors(255, 130, 0, 50)
-			x:setPosition(a1:getBody():getX(), a1:getBody():getY() + 15)
-			x1, y1 = x:getPosition()
-			table.insert(sys, {p=x, x=x1, y=y1})
-			x:emit(10)
-			player.jumping = false
-			player.moveSpeed = 510
 		end
 		if d1 == "lava" or d2 == "lava" then
 			player.jumping = false
@@ -235,15 +245,6 @@ function physx.Bcontact(a1, a2)
 		end
 		if d1 == "exit" or d2 == "exit" then
 			physx.exitReached = true
-			player.jumping = false
-		end
-		if d1 == "walk1" or d2 == "walk1" then
-			player.jumping = false
-		end
-		if d1 == "walk0" or d2 == "walk0" then
-			player.jumping = true
-		end
-		if d1 == "platform" or d2 == "platform" then
 			player.jumping = false
 		end
 		if d1 == "button2" or d2 == "button2" then
@@ -271,12 +272,27 @@ function physx.Bcontact(a1, a2)
 			end
 		end
 	end
-	if d1 == "player" and d2 == "checkpoint" then
-		player.jumping = false
-		player.setSpawn(a2:getBody():getX(), a2:getBody():getY())
-	elseif d2 == "player" and d1 == "checkpoint" then
-		player.jumping = false
-		player.setSpawn(a1:getBody():getX(), a1:getBody():getY())
+	if d1 == "player" and d2:utf8sub(1, -2) == "checkpoint" then
+		for k, v in ipairs(physx.tiles) do
+			if not v.dead then
+				if v.fixture:getUserData() == a2:getUserData() then
+					v.color = {0, 170, 0, 90}
+					v.fixture:setMask(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+					player.setSpawn(a2:getBody():getX(), a2:getBody():getY())
+				end
+			end
+		end
+		--player.setSpawn(a2:getBody():getX(), a2:getBody():getY())
+	elseif d2 == "player" and d1:utf8sub(1, -2) == "checkpoint" then
+		for k, v in ipairs(physx.tiles) do
+			if not v.dead then
+				if v.fixture:getUserData() == a1:getUserData() then
+					v.color = {0, 170, 0, 90}
+					v.fixture:setMask(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+					player.setSpawn(a2:getBody():getX(), a2:getBody():getY())
+				end
+			end
+		end
 	end
 end
 
@@ -294,7 +310,7 @@ function physx.Econtact(a1, a2)
 			player.jumping = true
 		end
 	end
-	if d1 == "box" or d2 == "box" then
+	--[[if d1 == "box" or d2 == "box" then
 		if d1 == "button" or d2 == "button" then
 			for k, v in ipairs(physx.tiles) do
 				if not v.dead then
@@ -306,5 +322,5 @@ function physx.Econtact(a1, a2)
 				end
 			end
 		end
-	end
+	end]]
 end

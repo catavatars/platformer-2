@@ -29,6 +29,13 @@ function game:keypressed(key)
     boxnum = 0
     physx.loadMap(maps.getMap())
   end
+  if key == "r" then
+    boxnum = 0
+    physx.loadMap(maps.getMap())
+  end
+  if key == "c" then
+    player.respawn()
+  end
 end
 
 return game

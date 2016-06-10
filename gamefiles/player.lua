@@ -7,6 +7,7 @@ player.shape = love.physics.newRectangleShape(20, 20)
 player.fixture = love.physics.newFixture(player.body, player.shape)
 player.fixture:setUserData("player")
 player.fixture:setFriction(1)
+--player.body:setFixedRotation(true)
 player.moveSpeed = 350
 player.jumpForce = 120
 player.jumping = false
@@ -40,15 +41,13 @@ function player.update(dt)
 	end
 	if player.dead then
 		player.dead = false
-		physx.loadMap(maps.getMap())
 		player.respawn()
 		love.audio.newSource("sound/died.wav"):play()
 	end
+	xN, yN = player.body:getLinearVelocity()
 	if player.body:getLinearVelocity() >= player.maxVelocity then
-		xN, yN = player.body:getLinearVelocity()
 		player.body:setLinearVelocity(player.maxVelocity, yN)
 	elseif player.body:getLinearVelocity() <= -player.maxVelocity then
-		xN, yN = player.body:getLinearVelocity()
 		player.body:setLinearVelocity(-player.maxVelocity, yN)
 	end
 	camera:setPosition(math.floor(player.body:getX()) - love.graphics.getWidth() / 2, math.floor(player.body:getY()) - love.graphics.getHeight() / 2)
