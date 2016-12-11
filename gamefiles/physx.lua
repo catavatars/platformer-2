@@ -89,10 +89,10 @@ function physx.loadMap(map)
 				dynamic(x * 25, y * 25 + 20, 20, 20, {160, 100, 40}, "box", "gfx/crate.png")
 			elseif map[y][x] == 5 then
 				static(x * 25, y * 25 + 10, 25, 5, {0, 130, 255}, "gelBounce", "gfx/blue.png")
-				static(x * 25, y * 25 + 22, 25, 20, {100, 100, 100}, "walk1", "gfx/grey brick.png")
+				static(x * 25, y * 25 + 23, 25, 20, {100, 100, 100}, "walk1", "gfx/grey brick.png")
 			elseif map[y][x] == 6 then
 				static(x * 25, y * 25 + 10, 25, 5, {255, 130, 0}, "gelSpeed", "gfx/orange.png")
-				static(x * 25, y * 25 + 22, 25, 20, {100, 100, 100}, "walk1", "gfx/grey brick.png")
+				static(x * 25, y * 25 + 23, 25, 20, {100, 100, 100}, "walk1", "gfx/grey brick.png")
 			elseif map[y][x] == 7 then
 				static(x * 25, y * 25 + 10, 25, 5, {150, 150, 150}, "platform", "gfx/platform.png")
 			elseif map[y][x] == 8 then
